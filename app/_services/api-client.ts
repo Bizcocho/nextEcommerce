@@ -1,3 +1,3 @@
 import ky from "ky";
 
-export default ky.create({prefixUrl: "http://localhost:3010"})
+export default ky.create({ prefixUrl: process.env.NEXT_PUBLIC_BACKEND_API_URL })
