@@ -2,7 +2,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+The back-end server should be running:
+https://github.com/Bizcocho/nextEcommerceBackend
+
+
+Then, run the development server:
 
 ```bash
 npm run dev
