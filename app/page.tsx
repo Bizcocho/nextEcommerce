@@ -1,103 +1,107 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { use, useState } from 'react';
+import Header from './_components/Header';
+import productService, { type Product } from './_services/product-service';
+import brandsService, { type Brand } from './_services/brands-service';
+import ProductList from './list/page';
+import { Dialog, DialogPanel } from '@headlessui/react';
+import ProductDetails from './details/page';
+import { XMarkIcon } from '@heroicons/react/20/solid';
+import type { CartProduct } from './_components/Cart';
+import toast, { Toaster } from 'react-hot-toast';
+import { findProductInCart } from './_utility/product';
+
+
+const productPromise = productService.getAll<Product[]>();
+const brandsPromise = brandsService.getAll<Brand[]>();
+
+
+function App() {
+
+  const products = use(productPromise);
+  const brands = use(brandsPromise);
+
+  const [clickedProduct, setClickedProduct] = useState<Product>();
+  const [isOpen, setIsOpen] = useState(false);
+  const [cartObjects, setCartObjects] = useState<CartProduct[]>([]);
+
+
+  const handleOnCartAdd = (product: Product, option?: string) => {
+
+    const totalInCart = cartObjects.filter(c => c.product.id === product.id).reduce((accumulator, c) => accumulator + c.quantity, 0);
+    const productStockQuantity = product.stock_quantity;
+    const availableToAdd = productStockQuantity - totalInCart;
+
+    if (availableToAdd <= 0) {
+      toast.error('Product Out of Stock!');
+      return;
+    }
+
+    const productInCart = findProductInCart(product, cartObjects, option);
+
+    if (productInCart) {
+      // update product in cart quantity
+      setCartObjects(cartObjects.map(c => c.product.id === productInCart.product.id ? { ...c, quantity: c.quantity + 1 } : c));
+      toast.success('Product In Cart Updated!');
+      return;
+    }
+
+    // Add new product to the cart.
+    setCartObjects([...cartObjects, { product, option: option ?? "", quantity: 1 }])
+    toast.success('Product Added To Cart!');
+  }
+
+  const handleOnCartItemDelete = (cartProduct: CartProduct, option?: string) => {
+    const { product } = cartProduct;
+
+    const productOption = option || cartProduct.option
+
+    if (productOption) {
+      setCartObjects(cartObjects.filter(c => !(c.product.id === product.id && c.option === productOption)));
+    } else {
+      setCartObjects(cartObjects.filter(p => p.product.id !== product.id));
+    }
+
+    closeProductDetailsDialog();
+  }
+
+  const handleOnProductClick = (product: Product) => {
+    setClickedProduct(product);
+    setIsOpen(true);
+  }
+
+  function closeProductDetailsDialog() {
+    setIsOpen(false)
+  }
+
+  const handleOnCardProductUpdate = (product: Product, quantity: number) => {
+    setCartObjects(cartObjects.map(c => c.product.id === product.id ? { ...c, product, quantity } : c))
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
+      <Header cartProducts={cartObjects} onProductDelete={handleOnCartItemDelete} onCardProductUpdate={handleOnCardProductUpdate} />
+      <ProductList brands={brands} products={products} cartProducts={cartObjects} onAddToCart={handleOnCartAdd} onProductClick={handleOnProductClick} />
+      <Dialog open={isOpen} as="div" className="relative z-10 focus:outline-none" onClose={closeProductDetailsDialog}>
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <DialogPanel
+              transition
+              className="w-[95%] max-w rounded-xl bg-white/5 p-6 backdrop-blur-2xl duration-300 ease-out data-closed:transform-[scale(95%)] data-closed:opacity-0"
+            >
+              <ProductDetails product={clickedProduct} onAddToCart={handleOnCartAdd} cartProducts={cartObjects} />
+              <XMarkIcon data-testid="close-product-details" className='w-10 h-10 absolute text-black top-[15px] right-[17px] hover:text-gray-700 cursor-pointer' onClick={closeProductDetailsDialog} />
+            </DialogPanel>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      </Dialog>
+    </>
+  )
 }
+
+export default App
