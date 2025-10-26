@@ -15,11 +15,7 @@ interface Props {
 const QuickAddIcon = (props: Props) => {
     const { cartProducts, product, onNormalButtonClick, onMenuItemClick, className } = props;
 
-    // const isProductInCart = cartProducts.some(c => c.product.id === product.id);
     const isProductInCart = findProductInCart(product, cartProducts)
-
-    
-
 
     if (product.selectible_option === null) return (
         <div 
