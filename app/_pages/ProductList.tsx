@@ -55,8 +55,7 @@ const ProductList = (props: Props) => {
         zenscroll.toY(0, 750);
     };
 
-    //Handle filtering
-    useEffect(() => {
+    const handleFiltering = (filters: ApplyFilter) => {
         const categoryItems = filters.category === "All" ? products : products.filter(p => p.category === filters.category);
         const brandItems = filters.selectedBrands.length <= 0 ? categoryItems : categoryItems.filter(p => filters.selectedBrands.includes(p.brand))
         const rangeItems = filters.rangeValues[0] === 0 && filters.rangeValues[1] === 2000 ? brandItems : brandItems.filter(b => b.price >= filters.rangeValues[0] && b.price <= filters.rangeValues[1])
@@ -65,10 +64,8 @@ const ProductList = (props: Props) => {
         setProductsCopy(sortedItems);
         setCurrentItems(sortedItems.slice(0, itemsPerPage));
         setPageCount(Math.ceil(sortedItems.length / itemsPerPage));
-
         setCurrentPage(0);
-
-    }, [filters])
+    }
 
     const applySort = (products: Product[], filter: number) => {
         switch (filter) {
@@ -87,19 +84,23 @@ const ProductList = (props: Props) => {
 
     const filterByBrand = (selectedBrands: string[]) => {
         setFilters({ ...filters, selectedBrands })
+        handleFiltering({ ...filters, selectedBrands });
     }
 
     const filterByPriceRange = (rangeValues: [number, number]) => {
         setFilters({ ...filters, rangeValues })
+        handleFiltering({ ...filters, rangeValues });
     }
 
     const filterByCategory = (category: "Shoes" | "Shirts" | "All") => {
         setCurrentCategory(category);
         setFilters({ ...filters, category });
+        handleFiltering({ ...filters, category });
     }
 
     const sortBy = (option: Option) => {
         setFilters({ ...filters, sortBy: option.value })
+        handleFiltering({ ...filters, sortBy: option.value });
     }
 
     return <div className='pr-[90px] pl-[90px] pb-[60px]'>
