@@ -42,18 +42,16 @@ export default function SortBySelect(props: Props) {
     const { onValueChange } = props;
     const [selected, setSelected] = useState<Option>();
 
-    useEffect(() => {
-        if (!selected) return;
-        onValueChange?.(selected);
-    }, [selected])
-
     const handleOnChange = (value: Option) => {
         if (value.value === selected?.value) {
-            setSelected({ label: "Sort By", value: 0 });
+            const newSelection = { label: "Sort By", value: 0 };
+            setSelected(newSelection);
+            onValueChange?.(newSelection);
             return;
         }
 
         setSelected(value);
+        onValueChange?.(value);
     }
 
     return (
