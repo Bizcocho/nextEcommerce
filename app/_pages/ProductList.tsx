@@ -38,19 +38,13 @@ const ProductList = (props: Props) => {
     const itemsPerPage = 16;
 
     const [currentPage, setCurrentPage] = useState<number>(0)
-    const [currentItems, setCurrentItems] = useState<Product[]>([]);
-    const [productsCopy, setProductsCopy] = useState<Product[]>([]);
-    const pageCount = useRef<number>(0);
+    const [currentItems, setCurrentItems] = useState<Product[]>(products.slice(0, itemsPerPage));
+    const [productsCopy, setProductsCopy] = useState<Product[]>(products);
+    const [pageCount, setPageCount] = useState<number>(Math.ceil(products.length / itemsPerPage))
 
     const [currentCategory, setCurrentCategory] = useState<Category>("All");
     const [filters, setFilters] = useState<ApplyFilter>({ category: "All", selectedBrands: [], rangeValues: [0, 2000], sortBy: 0 });
 
-
-    useEffect(() => {
-        setCurrentItems(products.slice(0, itemsPerPage));
-        pageCount.current = Math.ceil(products.length / itemsPerPage)
-        setProductsCopy(products)
-    }, [products])
 
     const handlePageClick = (event: { selected: number }) => {
         setCurrentPage(event.selected);
@@ -70,7 +64,8 @@ const ProductList = (props: Props) => {
 
         setProductsCopy(sortedItems);
         setCurrentItems(sortedItems.slice(0, itemsPerPage));
-        pageCount.current = Math.ceil(sortedItems.length / itemsPerPage);
+        setPageCount(Math.ceil(sortedItems.length / itemsPerPage));
+
         setCurrentPage(0);
 
     }, [filters])
@@ -153,7 +148,7 @@ const ProductList = (props: Props) => {
                 nextLabel="Next"
                 onPageChange={handlePageClick}
                 pageRangeDisplayed={5}
-                pageCount={pageCount.current}
+                pageCount={pageCount}
                 previousLabel="Previous"
                 renderOnZeroPageCount={null}
                 className='flex justify-end items-center mt-6'
