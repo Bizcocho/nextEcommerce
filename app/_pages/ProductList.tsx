@@ -5,7 +5,7 @@ import shoes from '../_assets/shoes.webp'
 import shirt from '../_assets/shirt.webp'
 import BrandListBox from '../_components/BrandListBox';
 import PriceFilter from '../_components/PriceFilter';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Product } from '../_services/product-service';
 import SortBySelect, { OptionValue, type Option } from '../_components/SortBySelect';
 import type { Brand } from '../_services/brands-service';
