@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { SetStateAction, useEffect, useState } from 'react'
 import { Checkbox, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import type { Brand } from '../_services/brands-service';
@@ -12,13 +12,13 @@ export default function BrandListBox(props: Props) {
     const { brands, onSelected } = props;
     const [selected, setSelected] = useState<string[]>([]);
     
-
-    useEffect(() => {
-        onSelected?.(selected);
-    }, [selected])
+    const handleOnChange = (value: string[]) => {
+        setSelected(value);
+        onSelected?.(value);
+    }
 
     return (
-        <Listbox value={selected} onChange={setSelected} multiple >
+        <Listbox value={selected} onChange={handleOnChange} multiple >
             <ListboxButton className='grid w-full cursor-pointer grid-cols-[70%_1fr] rounded-[28px] bg-[#EBEDEC] max-w-[120px]'>
                 <span className="flex items-center gap-3 p-[10px_14px]">
                     <span className="block truncate">{selected.length <= 0 ? "Brands" : selected.join(", ")}</span>
